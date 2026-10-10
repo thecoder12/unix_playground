@@ -331,13 +331,99 @@ Try `ls`, `pwd`, `cat README.md`, or run an example from the library.</wanix-bin
     </div>
 
     <script type="module">
-      const examples = [
+      const starterExamples = [
         { id: "hello", title: "Say hello", category: "Getting started", command: 'echo "Hello, world!"', description: "Print a line from the browser-based rc shell. The command runs inside a fresh, isolated WANIX namespace.", tags: ["echo", "output", "rc builtin"], note: "<strong>Try it:</strong> Run the example, then change the text and submit it in the terminal." },
         { id: "where-am-i", title: "Print working directory", category: "Getting started", command: "pwd", description: "See the current directory inside this session. WANIX gives the shell its own virtual filesystem rather than access to your host files.", tags: ["pwd", "filesystem", "rc builtin"], note: "<strong>Notice:</strong> The path belongs to the in-browser namespace, not a folder on your Mac." },
         { id: "list-files", title: "List workspace files", category: "Files", command: "ls", description: "Inspect the files mounted into the starter workspace. The playground includes a couple of small sample files to explore.", tags: ["ls", "files", "workspace"], note: "<strong>Next:</strong> Use <code>cat README.md</code> or <code>cat hello.txt</code> to read a file." },
         { id: "read-file", title: "Read a file", category: "Files", command: "cat hello.txt", description: "Print the contents of a file in the virtual workspace. Files are mounted into the WANIX namespace at startup.", tags: ["cat", "files", "workspace"], note: "<strong>Try it:</strong> Run <code>cat README.md</code> next to read the workspace note." },
         { id: "sequence", title: "Run commands in sequence", category: "Shell syntax", command: 'echo first; echo second', description: "Separate commands with a semicolon to run them one after another in the same shell session.", tags: ["sequence", "echo", "rc syntax"], note: "<strong>Try it:</strong> Add another <code>; echo third</code> and run the line again." }
       ];
+
+      const extraExamples = [
+        ["help-overview", "List shell capabilities", "Help & discovery", "help", "Show the builtins and bundled commands available in this WANIX shell."],
+        ["help-ls", "Read ls help", "Help & discovery", "help ls", "Open the runtime help for listing files and directories."],
+        ["help-find", "Read find help", "Help & discovery", "help find", "Review the supported find filters before searching the virtual workspace."],
+        ["help-stat", "Read stat help", "Help & discovery", "help stat", "See how stat reports file type, size, and permissions."],
+        ["help-cat", "Read cat help", "Help & discovery", "help cat", "Check the options accepted by the bundled cat utility."],
+        ["help-base64", "Read base64 help", "Help & discovery", "help base64", "See the encoding and decoding options available in this runtime."],
+        ["help-chmod", "Read chmod help", "Help & discovery", "help chmod", "Review how chmod changes virtual file permissions."],
+        ["help-cp", "Read cp help", "Help & discovery", "help cp", "Check copy options before changing files in the practice directory."],
+        ["help-env", "Read env help", "Help & discovery", "help env", "See how this shell prints and filters its environment."],
+        ["help-gzip", "Read gzip help", "Help & discovery", "help gzip", "Review the compression options included in WANIX rc."],
+        ["help-gzcat", "Read gzcat help", "Help & discovery", "help gzcat", "See how gzcat reads compressed input."],
+        ["help-gunzip", "Read gunzip help", "Help & discovery", "help gunzip", "Review the decompression options."],
+        ["help-mkdir", "Read mkdir help", "Help & discovery", "help mkdir", "Check the options for creating directories."],
+        ["help-mv", "Read mv help", "Help & discovery", "help mv", "See the move and rename options."],
+        ["help-rm", "Read rm help", "Help & discovery", "help rm", "Review removal options. The examples use only disposable files in practice/."],
+        ["help-shasum", "Read shasum help", "Help & discovery", "help shasum", "See the checksum options supported by shasum."],
+        ["help-tar", "Read tar help", "Help & discovery", "help tar", "Review the archive operations included in this runtime."],
+        ["help-touch", "Read touch help", "Help & discovery", "help touch", "See how touch creates or updates virtual files."],
+        ["help-xargs", "Read xargs help", "Help & discovery", "help xargs", "Review xargs options. This shell does not currently support pipes or redirection."],
+        ["help-attach", "Read attach help", "Help & discovery", "help attach", "Inspect the WANIX-specific attach command."],
+        ["help-bind", "Read bind help", "Help & discovery", "help bind", "Inspect the WANIX namespace bind command."],
+        ["help-invoke", "Read invoke help", "Help & discovery", "help invoke", "Inspect the WANIX-specific invoke command."],
+        ["help-unbind", "Read unbind help", "Help & discovery", "help unbind", "Inspect the WANIX namespace unbind command."],
+        ["help-write", "Read write help", "Help & discovery", "help write", "Inspect the WANIX-specific write command."],
+
+        ["type-ls", "Identify ls", "Shell & environment", "type ls", "Ask the shell how it resolves the bundled ls command."],
+        ["type-find", "Identify find", "Shell & environment", "type find", "Ask the shell how it resolves find."],
+        ["type-cd", "Identify cd", "Shell & environment", "type cd", "Check whether cd is a shell builtin."],
+        ["type-echo", "Identify echo", "Shell & environment", "type echo", "Inspect how the shell resolves echo."],
+        ["type-stat", "Identify stat", "Shell & environment", "type stat", "Check how the shell resolves the bundled stat utility."],
+        ["show-environment", "Print environment", "Shell & environment", "env", "Display the environment visible to this isolated shell task."],
+        ["clean-environment", "Start with a clean environment", "Shell & environment", "env -i DEMO=isolated", "Print a minimal environment containing only the requested demo value."],
+        ["set-shell-variable", "Set a shell variable", "Shell & environment", "DEMO=local; echo $DEMO", "Assign a value for this command list and expand it in the following command."],
+        ["export-shell-variable", "Export an environment value", "Shell & environment", "export PLAYGROUND_MODE=browser; echo $PLAYGROUND_MODE", "Export a value in the shell task and print it."],
+        ["unset-shell-variable", "Unset a shell variable", "Shell & environment", "unset DEMO; echo variable-cleared", "Remove a variable from the shell environment, then print a confirmation."],
+        ["no-op-command", "Use the no-op builtin", "Shell & environment", ":; echo no-op-complete", "Run the colon no-op builtin before a second command in the same command list."],
+        ["true-command", "Run a successful status command", "Shell & environment", "true; echo success", "Run true, then show that the command list continues."],
+        ["false-command", "Continue after a false status", "Shell & environment", "false; echo command-list-continues", "Run false and then a separate command; the second command still executes."],
+        ["cd-current", "Stay in the current directory", "Shell & environment", "cd .; pwd", "Change to the current directory and print its virtual path."],
+        ["cd-root", "Move to the namespace root", "Shell & environment", "cd /; pwd", "Change to the root of the in-memory namespace."],
+        ["multi-command-list", "Run three commands in order", "Shell & environment", "echo first; echo second; echo third", "Separate a short sequence of commands with semicolons."],
+
+        ["ls-hidden", "Include hidden entries", "Listing & navigation", "ls -a", "Show hidden entries as well as ordinary names in the current directory."],
+        ["ls-long", "Show file details", "Listing & navigation", "ls -l", "Use the long listing format to inspect entry metadata."],
+        ["ls-human", "Show human-readable sizes", "Listing & navigation", "ls -lh", "Combine long listing and human-readable size formatting."],
+        ["ls-classify", "Mark entry types", "Listing & navigation", "ls -F", "Append a marker to entries such as directories and executable files."],
+        ["ls-recursive", "List entries recursively", "Listing & navigation", "ls -R", "Walk the virtual workspace and list nested entries."],
+        ["ls-size-sort", "Sort by size", "Listing & navigation", "ls -S", "Sort entries by size using the ls size option."],
+        ["ls-directory-only", "List a directory entry", "Listing & navigation", "ls -d .", "Show the directory itself rather than listing its contents."],
+        ["ls-selected-files", "List selected files", "Listing & navigation", "ls README.md hello.txt", "Pass multiple explicit paths to one ls invocation."],
+        ["ls-long-selected", "Inspect selected files", "Listing & navigation", "ls -l README.md hello.txt", "Combine the long format with multiple file arguments."],
+
+        ["find-everything", "Walk the workspace", "Find & inspect", "find .", "Recursively print paths below the current virtual directory."],
+        ["find-files", "Find regular files", "Find & inspect", "find . -type f", "Filter the recursive search to regular files."],
+        ["find-directories", "Find directories", "Find & inspect", "find . -type d", "Filter the recursive search to directories."],
+        ["find-file-alias", "Find using the file type name", "Find & inspect", "find . -type file", "Use the long-form file type accepted by WANIX find."],
+        ["find-readme", "Find a named file", "Find & inspect", "find . -name README.md", "Match a basename while searching recursively."],
+        ["find-hello", "Find the sample text file", "Find & inspect", "find . -name hello.txt", "Search the namespace for the bundled hello.txt sample."],
+        ["find-specific-file", "Combine type and name filters", "Find & inspect", "find . -type f -name README.md", "Apply file-type and basename filters to the same search."],
+        ["find-long", "Show long find results", "Find & inspect", "find . -l", "Print each result in a long format with metadata."],
+        ["find-long-files", "Inspect matching files", "Find & inspect", "find . -type f -l", "Combine a regular-file filter with long output."],
+        ["find-workspace", "Find below the practice directory", "Find & inspect", "mkdir -p practice; find practice", "Create the disposable practice directory if needed, then inspect its entries."],
+        ["stat-readme", "Inspect README metadata", "Find & inspect", "stat README.md", "Report the sample README file's size, type, and permissions."],
+        ["stat-samples", "Inspect multiple files", "Find & inspect", "stat README.md hello.txt rc.wasm", "Pass several sample paths to a single stat command."],
+        ["stat-root", "Inspect the namespace root", "Find & inspect", "stat .", "Report metadata for the current virtual directory."],
+
+        ["cat-readme", "Read the workspace note", "Read & verify", "cat README.md", "Print the README file mounted in the virtual workspace."],
+        ["cat-two-files", "Read multiple files", "Read & verify", "cat README.md hello.txt", "Print two sample files in order with one command."],
+        ["base64-hello", "Encode a sample file", "Read & verify", "base64 hello.txt", "Encode the greeting file as base64 text."],
+        ["base64-readme", "Encode a longer file", "Read & verify", "base64 README.md", "Encode the workspace note to compare a longer base64 result."],
+        ["checksum-hello", "Hash a sample file", "Read & verify", "shasum hello.txt", "Calculate a checksum for hello.txt."],
+        ["checksum-multiple", "Hash multiple files", "Read & verify", "shasum README.md hello.txt", "Calculate checksums for two files in one invocation."],
+
+      ].map(([id, title, category, command, description]) => ({
+        id,
+        title,
+        category,
+        command,
+        description,
+        tags: [command.split(/\s+/)[0], category.toLowerCase()],
+        note: "<strong>Sandbox:</strong> This command runs inside the browser's in-memory WANIX filesystem."
+      }));
+
+      const examples = [...starterExamples, ...extraExamples];
 
       const categories = ["All examples", ...new Set(examples.map((example) => example.category))];
       const list = document.querySelector("#example-list");
