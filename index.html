@@ -318,6 +318,35 @@
             <wanix-bind type="file" dst="README.md" perm="0644">Welcome to the WANIX browser playground.
 Try `ls`, `pwd`, `cat README.md`, or run an example from the library.</wanix-bind>
             <wanix-bind type="file" dst="hello.txt" perm="0644">Hello from the virtual filesystem.</wanix-bind>
+            <wanix-bind type="file" dst="people.csv" perm="0644">id,name,team
+101,Ada,platform
+102,Grace,systems
+103,Linus,kernel
+104,Margaret,research</wanix-bind>
+            <wanix-bind type="file" dst="metrics.csv" perm="0644">date,service,requests,errors
+2026-10-01,web,1200,4
+2026-10-01,api,860,2
+2026-10-02,web,1480,7
+2026-10-02,api,930,1</wanix-bind>
+            <wanix-bind type="file" dst="events.log" perm="0644">2026-10-01T09:00:00Z INFO service=api message=started
+2026-10-01T09:04:12Z WARN service=web message=slow-response
+2026-10-01T09:06:39Z ERROR service=api message=upstream-timeout
+2026-10-01T09:08:03Z INFO service=api message=recovered</wanix-bind>
+            <wanix-bind type="file" dst="settings.env" perm="0644">APP_NAME=unix-playground
+APP_MODE=demo
+LOG_LEVEL=info
+PORT=8080</wanix-bind>
+            <wanix-bind type="file" dst="manifest.json" perm="0644">{
+  "name": "wanix-playground",
+  "version": "1.0.0",
+  "features": ["search", "terminal", "wasm"],
+  "offlineWrites": false
+}</wanix-bind>
+            <wanix-bind type="file" dst="tasks.txt" perm="0644">Review sample files
+Check the API event log
+Compare daily request counts
+Verify the data checksums</wanix-bind>
+            <wanix-bind type="file" dst="encoded.txt" perm="0644">SGVsbG8sIFdBTklYIQo=</wanix-bind>
             <wanix-bind type="file" dst="rc.wasm" src="https://cdn.jsdelivr.net/npm/wanix-extras@0.4.0-rc2/dist/rc.wasm"></wanix-bind>
             <wanix-task id="shell" cmd="rc.wasm" term start></wanix-task>
             <wanix-term id="shell-terminal" path="#task/shell/term" font-size="13" cursor-blink="false"></wanix-term>
@@ -337,6 +366,21 @@ Try `ls`, `pwd`, `cat README.md`, or run an example from the library.</wanix-bin
         { id: "list-files", title: "List workspace files", category: "Files", command: "ls", description: "Inspect the files mounted into the starter workspace. The playground includes a couple of small sample files to explore.", tags: ["ls", "files", "workspace"], note: "<strong>Next:</strong> Use <code>cat README.md</code> or <code>cat hello.txt</code> to read a file." },
         { id: "read-file", title: "Read a file", category: "Files", command: "cat hello.txt", description: "Print the contents of a file in the virtual workspace. Files are mounted into the WANIX namespace at startup.", tags: ["cat", "files", "workspace"], note: "<strong>Try it:</strong> Run <code>cat README.md</code> next to read the workspace note." },
         { id: "sequence", title: "Run commands in sequence", category: "Shell syntax", command: 'echo first; echo second', description: "Separate commands with a semicolon to run them one after another in the same shell session.", tags: ["sequence", "echo", "rc syntax"], note: "<strong>Try it:</strong> Add another <code>; echo third</code> and run the line again." }
+      ];
+
+      const sampleExamples = [
+        { id: "cat-people-csv", title: "Read the people CSV", category: "Sample data", command: "cat people.csv", description: "Inspect a small comma-separated table with an id, name, and team column.", tags: ["cat", "csv", "data"], note: "<strong>Fixture:</strong> The file is mounted into the in-memory WANIX workspace." },
+        { id: "cat-metrics-csv", title: "Read service metrics", category: "Sample data", command: "cat metrics.csv", description: "Review request and error counts for two services across two dates.", tags: ["cat", "csv", "metrics"], note: "<strong>Fixture:</strong> Compare rows manually or use other supported file-inspection commands." },
+        { id: "cat-events-log", title: "Read the event log", category: "Sample data", command: "cat events.log", description: "Inspect a compact application log containing info, warning, and error events.", tags: ["cat", "log", "events"], note: "<strong>Fixture:</strong> The timestamps and messages are synthetic sample data." },
+        { id: "cat-settings-env", title: "Read environment settings", category: "Sample data", command: "cat settings.env", description: "Read a text file containing simple KEY=VALUE settings. It is data, not imported into the shell environment.", tags: ["cat", "config", "env"], note: "<strong>Note:</strong> Reading this file does not execute or export its values." },
+        { id: "cat-manifest-json", title: "Read the JSON manifest", category: "Sample data", command: "cat manifest.json", description: "Inspect a small JSON manifest with a name, version, features, and a boolean setting.", tags: ["cat", "json", "manifest"], note: "<strong>Fixture:</strong> This is plain JSON text mounted in the virtual filesystem." },
+        { id: "cat-tasks-text", title: "Read the task list", category: "Sample data", command: "cat tasks.txt", description: "Print a short multi-line checklist stored as a text file.", tags: ["cat", "text", "list"], note: "<strong>Fixture:</strong> Each task is a separate line in the mounted file." },
+        { id: "cat-encoded-text", title: "Inspect encoded text", category: "Sample data", command: "cat encoded.txt", description: "Read a base64-encoded greeting before decoding it with the bundled base64 utility.", tags: ["cat", "base64", "text"], note: "<strong>Next:</strong> Run <code>base64 -d encoded.txt</code> to decode the sample." },
+        { id: "find-csv-fixtures", title: "Find the CSV fixtures", category: "Sample data", command: "find . -type f -name people.csv; find . -type f -name metrics.csv", description: "Find two named regular files in the virtual workspace using separate supported find commands.", tags: ["find", "csv", "files"], note: "<strong>Shell limit:</strong> WANIX rc does not currently support pipes or redirection." },
+        { id: "stat-sample-fixtures", title: "Inspect sample file metadata", category: "Sample data", command: "stat people.csv metrics.csv events.log", description: "Compare the size, file type, and permissions of the CSV and log fixtures.", tags: ["stat", "metadata", "files"], note: "<strong>Fixture:</strong> All paths are files in the browser-only namespace." },
+        { id: "hash-sample-fixtures", title: "Checksum the data fixtures", category: "Sample data", command: "shasum people.csv metrics.csv", description: "Calculate checksums for both tabular data fixtures so their contents can be compared.", tags: ["shasum", "csv", "integrity"], note: "<strong>Tip:</strong> Re-running this against unchanged files should produce the same checksums." },
+        { id: "decode-encoded-fixture", title: "Decode the base64 fixture", category: "Sample data", command: "base64 -d encoded.txt", description: "Decode the mounted base64 text and print the original greeting to the terminal.", tags: ["base64", "decode", "text"], note: "<strong>Expected:</strong> The decoded data is a short greeting ending with a newline." },
+        { id: "sample-data-audit", title: "Audit the sample workspace", category: "Sample data", command: "ls -lh people.csv metrics.csv events.log; stat manifest.json settings.env; shasum people.csv metrics.csv", description: "Inventory selected fixtures, inspect configuration and manifest metadata, then checksum the CSV files.", tags: ["ls", "stat", "shasum", "multi-command"], note: "<strong>Sequence:</strong> Commands run one after another; this recipe does not use pipes or redirection." }
       ];
 
       const extraExamples = [
@@ -481,7 +525,7 @@ Try `ls`, `pwd`, `cat README.md`, or run an example from the library.</wanix-bin
         note: "<strong>WANIX rc:</strong> These recipes use supported commands in sequence; pipes and redirection are not available."
       }));
 
-      const examples = [...starterExamples, ...extraExamples, ...complexExamples];
+      const examples = [...starterExamples, ...sampleExamples, ...extraExamples, ...complexExamples];
 
       const categories = ["All examples", ...new Set(examples.map((example) => example.category))];
       const list = document.querySelector("#example-list");
