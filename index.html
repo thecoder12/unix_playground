@@ -1,0 +1,463 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f3f5f2">
+    <title>Unix Playground</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script type="module" src="https://cdn.jsdelivr.net/npm/wanix@0.4.0-rc2/dist/wanix.min.js"></script>
+    <style>
+      :root {
+        color-scheme: light;
+        --paper: #f3f5f2;
+        --surface: #ffffff;
+        --ink: #202723;
+        --muted: #737d76;
+        --line: #dfe5df;
+        --green: #c8f169;
+        --green-dark: #325b2d;
+        --orange: #e76f45;
+        --mono: "DM Mono", "SFMono-Regular", Consolas, monospace;
+        --sans: "DM Sans", "Helvetica Neue", sans-serif;
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        color: var(--ink);
+        background: var(--paper);
+        font-family: var(--sans);
+        font-size: 14px;
+      }
+
+      button, input { font: inherit; }
+      button { color: inherit; }
+
+      .app {
+        display: grid;
+        grid-template-columns: 224px minmax(300px, 0.95fr) minmax(390px, 1.15fr);
+        grid-template-rows: 68px minmax(0, 1fr);
+        height: 100dvh;
+        min-height: 560px;
+      }
+
+      .topbar {
+        z-index: 2;
+        grid-column: 1 / -1;
+        display: flex;
+        align-items: center;
+        gap: 28px;
+        padding: 0 24px;
+        background: var(--surface);
+        border-bottom: 1px solid var(--line);
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        width: 176px;
+        flex: 0 0 176px;
+        color: var(--ink);
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0;
+        text-decoration: none;
+      }
+
+      .brand-mark {
+        display: grid;
+        width: 30px;
+        height: 30px;
+        place-items: center;
+        color: var(--green-dark);
+        background: var(--green);
+        border-radius: 8px;
+        font-family: var(--mono);
+        font-size: 14px;
+        font-weight: 500;
+      }
+
+      .search-wrap { position: relative; width: min(420px, 46vw); }
+
+      .search-wrap::before {
+        position: absolute;
+        top: 10px;
+        left: 13px;
+        color: #8a948c;
+        content: "/";
+        font-family: var(--mono);
+      }
+
+      #search {
+        width: 100%;
+        height: 36px;
+        padding: 0 14px 0 32px;
+        color: var(--ink);
+        background: #f7f8f6;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        outline: none;
+      }
+
+      #search:focus { border-color: #92b766; box-shadow: 0 0 0 3px #c8f16955; }
+      #search::placeholder { color: #909992; }
+
+      .topbar-note { margin-left: auto; color: var(--muted); font-size: 12px; }
+      .command-nav, .command-detail, .terminal-pane { min-height: 0; }
+
+      .command-nav {
+        display: flex;
+        flex-direction: column;
+        padding: 22px 12px 16px;
+        background: #fbfcfa;
+        border-right: 1px solid var(--line);
+      }
+
+      .eyebrow {
+        margin: 0 10px 12px;
+        color: #8b948d;
+        font-family: var(--mono);
+        font-size: 10px;
+        font-weight: 500;
+        letter-spacing: 0;
+        text-transform: uppercase;
+      }
+
+      .category-list { display: grid; gap: 3px; margin-bottom: 24px; }
+
+      .category-button {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        min-height: 34px;
+        padding: 0 10px;
+        text-align: left;
+        background: transparent;
+        border: 0;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+
+      .category-button:hover, .category-button[aria-pressed="true"] { background: #edf2e9; }
+      .category-count { color: #8b948d; font-family: var(--mono); font-size: 11px; }
+
+      .example-list { display: grid; align-content: start; gap: 4px; overflow-y: auto; }
+
+      .example-button {
+        display: grid;
+        gap: 4px;
+        min-height: 60px;
+        padding: 10px;
+        text-align: left;
+        background: transparent;
+        border: 1px solid transparent;
+        border-radius: 6px;
+        cursor: pointer;
+      }
+
+      .example-button:hover { background: #f1f4ef; }
+      .example-button[aria-current="true"] { background: #edf2e9; border-color: #dce7d4; }
+      .example-name { font-size: 13px; font-weight: 600; }
+      .example-command { overflow: hidden; color: var(--muted); font-family: var(--mono); font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
+      .empty-list { padding: 12px 10px; color: var(--muted); font-size: 12px; line-height: 1.5; }
+
+      .command-detail {
+        overflow-y: auto;
+        padding: 38px clamp(22px, 3vw, 44px) 32px;
+        animation: rise-in 360ms ease-out both;
+      }
+
+      @keyframes rise-in {
+        from { opacity: 0; transform: translateY(8px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+
+      .crumb { display: flex; align-items: center; gap: 8px; margin-bottom: 26px; color: var(--muted); font-family: var(--mono); font-size: 11px; }
+      .crumb-mark { color: var(--orange); }
+
+      h1 {
+        margin: 0;
+        font-size: clamp(26px, 2.2vw, 34px);
+        font-weight: 600;
+        letter-spacing: 0;
+        line-height: 1.15;
+      }
+
+      .description { max-width: 540px; margin: 14px 0 24px; color: #66716a; font-size: 14px; line-height: 1.65; }
+      .tag-row { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 28px; }
+      .tag { padding: 5px 8px; color: #59645d; background: #e8ece7; border-radius: 4px; font-family: var(--mono); font-size: 10px; }
+      .section-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 9px; color: #536057; font-size: 12px; font-weight: 600; }
+
+      .code-block { position: relative; padding: 17px 16px 15px; background: #202723; border-radius: 7px; color: #e6f0e5; }
+      .code-meta { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; color: #94a196; font-family: var(--mono); font-size: 10px; }
+      .code-value { display: block; overflow-wrap: anywhere; padding-right: 4px; color: #d1f18e; font-family: var(--mono); font-size: 13px; line-height: 1.6; white-space: pre-wrap; }
+      .code-actions { display: flex; gap: 7px; margin-top: 16px; }
+
+      .button { min-height: 32px; padding: 0 11px; border: 1px solid #d7dfd7; border-radius: 5px; background: #fff; cursor: pointer; font-size: 11px; font-weight: 600; }
+      .button:hover { background: #f0f4ee; }
+      .button-primary { color: #1e291b; background: var(--green); border-color: var(--green); }
+      .button-primary:hover { background: #b8e450; }
+      .code-block .button-secondary { color: #dbe6da; background: #303a34; border-color: #48534c; }
+      .code-block .button-secondary:hover { background: #3b4740; }
+
+      .note { margin-top: 23px; padding: 13px 14px; color: #606c63; background: #e9eee8; border-left: 3px solid #9fc967; border-radius: 0 5px 5px 0; font-size: 12px; line-height: 1.55; }
+      .note strong { color: #39473d; }
+
+      .terminal-pane { display: flex; flex-direction: column; margin: 16px 16px 16px 0; overflow: hidden; background: #171d19; border: 1px solid #29322c; border-radius: 8px; box-shadow: 0 8px 28px #1c2b2016; animation: rise-in 420ms 80ms ease-out both; }
+      .terminal-toolbar { display: flex; align-items: center; min-height: 48px; gap: 10px; padding: 0 15px; color: #e1e9e1; border-bottom: 1px solid #2b342e; }
+      .terminal-dots { display: flex; gap: 5px; margin-right: 3px; }
+      .terminal-dots i { width: 7px; height: 7px; border-radius: 50%; background: #e87b56; }
+      .terminal-dots i:nth-child(2) { background: #e5bb61; }
+      .terminal-dots i:nth-child(3) { background: #94c977; }
+      .terminal-title { font-family: var(--mono); font-size: 11px; }
+      .runtime-state { display: flex; align-items: center; gap: 6px; margin-left: auto; color: #98a59a; font-size: 10px; }
+      .state-dot { width: 6px; height: 6px; border-radius: 50%; background: #e5bb61; }
+      .runtime-state[data-state="ready"] .state-dot { background: #98d37a; }
+      .runtime-state[data-state="error"] .state-dot { background: #ec806a; }
+      .runtime-state[data-state="ready"] { color: #b3d9a2; }
+      .runtime-state[data-state="error"] { color: #f0a091; }
+      .terminal-caption { display: flex; justify-content: space-between; gap: 12px; padding: 10px 15px; color: #869188; border-bottom: 1px solid #242d27; font-size: 10px; }
+      .terminal-caption code { color: #b4c2b5; font-family: var(--mono); }
+      .terminal-screen { display: flex; flex: 1; min-height: 220px; padding: 14px 12px 10px; }
+      wanix-namespace, wanix-term { display: block; width: 100%; height: 100%; min-height: 220px; }
+      wanix-namespace { flex: 1; }
+      wanix-term { color: #d5e5d2; }
+      .terminal-screen .xterm { height: 100%; }
+      .terminal-screen .xterm-viewport { overflow-y: auto !important; }
+      .terminal-footer { display: flex; align-items: flex-start; gap: 9px; padding: 12px 15px 14px; color: #829087; border-top: 1px solid #2b342e; font-size: 10px; line-height: 1.5; }
+      .terminal-footer code { color: #b4c2b5; font-family: var(--mono); }
+      .terminal-footer strong { color: #d0dacd; font-weight: 500; }
+
+      .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; clip-path: inset(50%); }
+
+      @media (max-width: 1050px) {
+        .app { grid-template-columns: 190px minmax(280px, 1fr) minmax(340px, 1fr); }
+        .topbar { gap: 16px; padding: 0 18px; }
+        .brand { width: 160px; flex-basis: 160px; }
+        .command-detail { padding-right: 22px; padding-left: 22px; }
+      }
+
+      @media (max-width: 800px) {
+        .app { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-rows: 62px auto auto minmax(420px, 65vh); height: auto; min-height: 100dvh; }
+        .topbar { grid-column: 1 / -1; gap: 14px; padding: 0 14px; }
+        .brand { width: auto; flex: 0 0 auto; }
+        .brand-label { display: none; }
+        .search-wrap { width: min(420px, 58vw); }
+        .topbar-note { display: none; }
+        .command-nav { grid-column: 1 / -1; padding: 14px 14px 10px; border-right: 0; border-bottom: 1px solid var(--line); }
+        .command-nav > .eyebrow { margin-left: 2px; }
+        .category-list { display: flex; gap: 4px; overflow-x: auto; margin: 0 0 9px; }
+        .category-button { flex: 0 0 auto; gap: 9px; }
+        .example-list { display: flex; gap: 6px; overflow-x: auto; }
+        .example-button { flex: 0 0 150px; }
+        .example-list .empty-list { min-width: 240px; }
+        .command-detail { grid-column: 1 / -1; overflow: visible; padding: 26px 20px 24px; }
+        .crumb { margin-bottom: 17px; }
+        .description { margin-top: 10px; }
+        .tag-row { margin-bottom: 21px; }
+        .terminal-pane { grid-column: 1 / -1; min-height: 420px; margin: 0 12px 16px; }
+      }
+
+      @media (max-width: 460px) {
+        .app { grid-template-rows: 58px auto auto minmax(390px, 58vh); }
+        .brand-mark { width: 28px; height: 28px; }
+        .search-wrap { flex: 1; width: auto; }
+        #search { height: 34px; font-size: 12px; }
+        .command-detail { padding-right: 16px; padding-left: 16px; }
+        .terminal-pane { min-height: 390px; }
+        .terminal-caption { flex-direction: column; gap: 4px; }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <header class="topbar">
+        <a class="brand" href="#" aria-label="Unix Playground home">
+          <span class="brand-mark">$</span>
+          <span class="brand-label">unix playground</span>
+        </a>
+        <label class="search-wrap">
+          <span class="sr-only">Search commands and examples</span>
+          <input id="search" type="search" placeholder="Find a command or snippet..." autocomplete="off">
+        </label>
+        <span class="topbar-note">A small Unix desk in your browser</span>
+      </header>
+
+      <aside class="command-nav" aria-label="Command library">
+        <p class="eyebrow">Browse examples</p>
+        <nav id="categories" class="category-list" aria-label="Categories"></nav>
+        <div id="example-list" class="example-list" aria-live="polite"></div>
+      </aside>
+
+      <main id="command-detail" class="command-detail"></main>
+
+      <section class="terminal-pane" aria-label="Interactive WANIX terminal">
+        <div class="terminal-toolbar">
+          <span class="terminal-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span class="terminal-title">rc &middot; browser sandbox</span>
+          <span id="runtime-state" class="runtime-state" data-state="loading" role="status">
+            <i class="state-dot" aria-hidden="true"></i><span id="runtime-label">Starting WANIX</span>
+          </span>
+        </div>
+        <div class="terminal-caption">
+          <span>WORKSPACE <code>~/playground</code></span>
+          <span>EXECUTION <code>WebAssembly &middot; local to this tab</code></span>
+        </div>
+        <div class="terminal-screen">
+          <wanix-namespace id="playground">
+            <wanix-bind dst="." src="#ramfs/new"></wanix-bind>
+            <wanix-bind type="file" dst="README.md" perm="0644">Welcome to the WANIX browser playground.
+Try `ls`, `pwd`, `cat README.md`, or run an example from the library.</wanix-bind>
+            <wanix-bind type="file" dst="hello.txt" perm="0644">Hello from the virtual filesystem.</wanix-bind>
+            <wanix-bind type="file" dst="rc.wasm" src="https://cdn.jsdelivr.net/npm/wanix-extras@0.4.0-rc2/dist/rc.wasm"></wanix-bind>
+            <wanix-task id="shell" cmd="rc.wasm" term start></wanix-task>
+            <wanix-term id="shell-terminal" path="#task/shell/term" font-size="13" cursor-blink="false"></wanix-term>
+          </wanix-namespace>
+        </div>
+        <div class="terminal-footer">
+          <span>&gt;</span>
+          <span><strong>Sandboxed by WANIX.</strong> This is the Plan 9 <code>rc</code> shell, not your computer's shell. Nothing runs on a server.</span>
+        </div>
+      </section>
+    </div>
+
+    <script type="module">
+      const examples = [
+        { id: "hello", title: "Say hello", category: "Getting started", command: 'echo "Hello, world!"', description: "Print a line from the browser-based rc shell. The command runs inside a fresh, isolated WANIX namespace.", tags: ["echo", "output", "rc builtin"], note: "<strong>Try it:</strong> Run the example, then change the text and submit it in the terminal." },
+        { id: "where-am-i", title: "Print working directory", category: "Getting started", command: "pwd", description: "See the current directory inside this session. WANIX gives the shell its own virtual filesystem rather than access to your host files.", tags: ["pwd", "filesystem", "rc builtin"], note: "<strong>Notice:</strong> The path belongs to the in-browser namespace, not a folder on your Mac." },
+        { id: "list-files", title: "List workspace files", category: "Files", command: "ls", description: "Inspect the files mounted into the starter workspace. The playground includes a couple of small sample files to explore.", tags: ["ls", "files", "workspace"], note: "<strong>Next:</strong> Use <code>cat README.md</code> or <code>cat hello.txt</code> to read a file." },
+        { id: "read-file", title: "Read a file", category: "Files", command: "cat hello.txt", description: "Print the contents of a file in the virtual workspace. Files are mounted into the WANIX namespace at startup.", tags: ["cat", "files", "workspace"], note: "<strong>Try it:</strong> Run <code>cat README.md</code> next to read the workspace note." },
+        { id: "sequence", title: "Run commands in sequence", category: "Shell syntax", command: 'echo first; echo second', description: "Separate commands with a semicolon to run them one after another in the same shell session.", tags: ["sequence", "echo", "rc syntax"], note: "<strong>Try it:</strong> Add another <code>; echo third</code> and run the line again." }
+      ];
+
+      const categories = ["All examples", ...new Set(examples.map((example) => example.category))];
+      const list = document.querySelector("#example-list");
+      const categoryList = document.querySelector("#categories");
+      const detail = document.querySelector("#command-detail");
+      const terminal = document.querySelector("#shell-terminal");
+      const search = document.querySelector("#search");
+      const runtimeState = document.querySelector("#runtime-state");
+      const runtimeLabel = document.querySelector("#runtime-label");
+      let activeCategory = "All examples";
+      let selectedId = examples[0].id;
+      let runtimeReady = false;
+
+      function renderCategories() {
+        categoryList.innerHTML = categories.map((category) => {
+          const count = category === "All examples" ? examples.length : examples.filter((example) => example.category === category).length;
+          return `<button class="category-button" type="button" data-category="${category}" aria-pressed="${activeCategory === category}"><span>${category}</span><span class="category-count">${count}</span></button>`;
+        }).join("");
+      }
+
+      function visibleExamples() {
+        const query = search.value.trim().toLowerCase();
+        return examples.filter((example) => {
+          const matchesCategory = activeCategory === "All examples" || example.category === activeCategory;
+          const haystack = `${example.title} ${example.category} ${example.command} ${example.description} ${example.tags.join(" ")}`.toLowerCase();
+          return matchesCategory && haystack.includes(query);
+        });
+      }
+
+      function renderList() {
+        const visible = visibleExamples();
+        if (!visible.some((example) => example.id === selectedId)) selectedId = visible[0]?.id ?? null;
+        list.innerHTML = visible.length ? visible.map((example) => `
+          <button class="example-button" type="button" data-example="${example.id}" aria-current="${selectedId === example.id}">
+            <span class="example-name">${example.title}</span>
+            <span class="example-command">${example.command}</span>
+          </button>`).join("") : `<p class="empty-list">No examples match that search. Try another command or category.</p>`;
+        renderDetail();
+      }
+
+      function renderDetail() {
+        const example = examples.find((item) => item.id === selectedId);
+        if (!example) {
+          detail.innerHTML = `<p class="crumb"><span class="crumb-mark">/</span> command library</p><h1>No matches</h1><p class="description">Clear the search or choose another category to browse the examples.</p>`;
+          return;
+        }
+        detail.innerHTML = `
+          <p class="crumb"><span class="crumb-mark">/</span> ${example.category.toLowerCase()} <span>/</span> ${example.id}</p>
+          <h1>${example.title}</h1>
+          <p class="description">${example.description}</p>
+          <div class="tag-row">${example.tags.map((tag) => `<span class="tag">${tag}</span>`).join("")}</div>
+          <div class="section-heading"><span>Example</span><span>rc shell</span></div>
+          <div class="code-block">
+            <div class="code-meta"><span>~/playground</span><span>WANIX &middot; WASM</span></div>
+            <code class="code-value"></code>
+            <div class="code-actions">
+              <button class="button button-primary" type="button" data-action="run">Run example</button>
+              <button class="button button-secondary" type="button" data-action="copy">Copy command</button>
+            </div>
+          </div>
+          <div class="note">${example.note}</div>`;
+        detail.querySelector(".code-value").textContent = example.command;
+      }
+
+      function runCommand(command) {
+        if (!runtimeReady || !terminal?._term) {
+          runtimeLabel.textContent = "Still starting";
+          return;
+        }
+        terminal._term.focus();
+        for (const character of `${command}\r`) terminal._term.paste(character);
+      }
+
+      categoryList.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-category]");
+        if (!button) return;
+        activeCategory = button.dataset.category;
+        renderCategories();
+        renderList();
+      });
+
+      list.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-example]");
+        if (!button) return;
+        selectedId = button.dataset.example;
+        renderList();
+      });
+
+      search.addEventListener("input", renderList);
+
+      detail.addEventListener("click", async (event) => {
+        const action = event.target.closest("[data-action]")?.dataset.action;
+        const example = examples.find((item) => item.id === selectedId);
+        if (!action || !example) return;
+        if (action === "run") runCommand(example.command);
+        if (action === "copy") {
+          try {
+            await navigator.clipboard.writeText(example.command);
+            event.target.textContent = "Copied";
+            setTimeout(() => { event.target.textContent = "Copy command"; }, 1200);
+          } catch {
+            event.target.textContent = "Clipboard unavailable";
+            setTimeout(() => { event.target.textContent = "Copy command"; }, 1600);
+          }
+        }
+      });
+
+      const namespace = document.querySelector("#playground");
+      namespace.addEventListener("ready", () => {
+        runtimeReady = true;
+        runtimeState.dataset.state = "ready";
+        runtimeLabel.textContent = "WANIX ready";
+      });
+      namespace.addEventListener("error", () => {
+        runtimeState.dataset.state = "error";
+        runtimeLabel.textContent = "Could not start";
+      });
+
+      renderCategories();
+      renderList();
+    </script>
+  </body>
+</html>
